@@ -1,0 +1,31 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+
+Table users {
+  id integer [primary key]
+  username varchar [not null, unique]
+  
+  firstname varchar [not null]
+  lastname varchar [not null]
+
+  email varchar [unique]
+  phone varchar [unique]
+
+  password_hash varchar 
+
+  created_at timestamp [not null]
+}
+
+
+Table roles {
+  id integer [primary key]
+  name varchar [not null]
+}
+
+Table users_roles {
+  user_id integer [ref: > users.id]
+  role_id integer [ref: > roles.id]
+}
+
+
