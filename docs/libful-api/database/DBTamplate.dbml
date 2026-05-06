@@ -31,5 +31,5 @@ Table users_roles {
 Table check_in_history {
   id integer [primary key]
   user_id integer [not null, ref: > users.id]
-  check_in_datetime datetime
+  check_in_datetime datetime [not null, default: `now()`]
 }
