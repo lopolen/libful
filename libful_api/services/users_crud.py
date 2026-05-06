@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, select
+from sqlalchemy import ColumnElement, or_, select
 from sqlalchemy.exc import IntegrityError
 
 from libful_api.models.user import User
@@ -45,6 +45,36 @@ class UsersCrud:
         return self.db_session.scalar(
             select(User).where(User.username == username)
         )
+
+    def search_users(
+        self,
+        *,
+        user_id: int | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        email: str | None = None,
+        phone: str | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> list[User]:
+        conditions: list[ColumnElement[bool]] = []
+
+        if user_id is not None:
+            conditions.append(User.id == user_id)
+        if first_name is not None:
+            conditions.append(User.first_name.ilike(f"%{first_name}%"))
+        if last_name is not None:
+            conditions.append(User.last_name.ilike(f"%{last_name}%"))
+        if email is not None:
+            conditions.append(User.email.ilike(f"%{email}%"))
+        if phone is not None:
+            conditions.append(User.phone.ilike(f"%{phone}%"))
+
+        query = select(User).order_by(User.id).offset(offset).limit(limit)
+        if conditions:
+            query = query.where(*conditions)
+
+        return list(self.db_session.scalars(query).all())
 
     def update_user(
         self,

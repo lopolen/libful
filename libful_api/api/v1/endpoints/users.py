@@ -1,12 +1,12 @@
-from typing import Any, NoReturn
+from typing import Annotated, Any, NoReturn
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel
 
 from libful_api.api.deps import UsersCrudDep
 from libful_api.core.exceptions import InvalidEmail, UserAlreadyExists
 from libful_api.models.user import User
-from libful_api.schemas.user import UserCreate, UserRead, UserUpdate
+from libful_api.schemas.user import UserCreate, UserRead, UserSearchParams, UserUpdate
 
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -44,6 +44,22 @@ def create_user(
     except (UserAlreadyExists, InvalidEmail) as exc:
         users_crud.db_session.rollback()
         raise_user_http_exception(exc)
+
+
+@router.get("/search", response_model=list[UserRead])
+def search_users(
+    filters: Annotated[UserSearchParams, Depends()],
+    users_crud: UsersCrudDep,
+) -> list[User]:
+    return users_crud.search_users(
+        user_id=filters.id,
+        first_name=filters.first_name,
+        last_name=filters.last_name,
+        email=filters.email,
+        phone=filters.phone,
+        limit=filters.limit,
+        offset=filters.offset,
+    )
 
 
 @router.get("/{username}", response_model=UserRead)
