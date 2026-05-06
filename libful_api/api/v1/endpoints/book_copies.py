@@ -1,0 +1,129 @@
+from typing import Annotated, NoReturn
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+
+from libful_api.api.deps import BookCopiesCrudDep
+from libful_api.core.exceptions import (
+    InvalidBookCopyStatus,
+    RelatedResourceNotFound,
+    ResourceAlreadyExists,
+)
+from libful_api.models.book_copy import BookCopy
+from libful_api.schemas.book_copy import (
+    BookCopyCreate,
+    BookCopyListParams,
+    BookCopyRead,
+    BookCopyUpdate,
+)
+
+
+router = APIRouter(prefix="/book-copies", tags=["book-copies"])
+
+
+def raise_book_copy_http_exception(
+    exc: ResourceAlreadyExists | RelatedResourceNotFound | InvalidBookCopyStatus,
+) -> NoReturn:
+    if isinstance(exc, ResourceAlreadyExists):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    if isinstance(exc, InvalidBookCopyStatus):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=str(exc),
+    ) from exc
+
+
+@router.post("", response_model=BookCopyRead, status_code=status.HTTP_201_CREATED)
+def create_book_copy(
+    payload: BookCopyCreate,
+    book_copies_crud: BookCopiesCrudDep,
+) -> BookCopy:
+    try:
+        book_copy = book_copies_crud.create_book_copy(**payload.model_dump())
+        book_copies_crud.db_session.commit()
+        book_copies_crud.db_session.refresh(book_copy)
+        return book_copy
+    except (ResourceAlreadyExists, RelatedResourceNotFound, InvalidBookCopyStatus) as exc:
+        book_copies_crud.db_session.rollback()
+        raise_book_copy_http_exception(exc)
+
+
+@router.get("", response_model=list[BookCopyRead])
+def list_book_copies(
+    params: Annotated[BookCopyListParams, Depends()],
+    book_copies_crud: BookCopiesCrudDep,
+) -> list[BookCopy]:
+    try:
+        return book_copies_crud.list_book_copies(
+            book_id=params.book_id,
+            status=params.status,
+            limit=params.limit,
+            offset=params.offset,
+        )
+    except (RelatedResourceNotFound, InvalidBookCopyStatus) as exc:
+        raise_book_copy_http_exception(exc)
+
+
+@router.get("/{book_copy_id}", response_model=BookCopyRead)
+def read_book_copy(
+    book_copy_id: int,
+    book_copies_crud: BookCopiesCrudDep,
+) -> BookCopy:
+    book_copy = book_copies_crud.read_book_copy(book_copy_id=book_copy_id)
+    if book_copy is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book copy not found",
+        )
+    return book_copy
+
+
+@router.patch("/{book_copy_id}", response_model=BookCopyRead)
+def update_book_copy(
+    book_copy_id: int,
+    payload: BookCopyUpdate,
+    book_copies_crud: BookCopiesCrudDep,
+) -> BookCopy:
+    try:
+        book_copy = book_copies_crud.update_book_copy(
+            book_copy_id=book_copy_id,
+            **payload.model_dump(exclude_unset=True),
+        )
+        if book_copy is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Book copy not found",
+            )
+
+        book_copies_crud.db_session.commit()
+        book_copies_crud.db_session.refresh(book_copy)
+        return book_copy
+    except HTTPException:
+        book_copies_crud.db_session.rollback()
+        raise
+    except (ResourceAlreadyExists, RelatedResourceNotFound, InvalidBookCopyStatus) as exc:
+        book_copies_crud.db_session.rollback()
+        raise_book_copy_http_exception(exc)
+
+
+@router.delete("/{book_copy_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_book_copy(
+    book_copy_id: int,
+    book_copies_crud: BookCopiesCrudDep,
+) -> Response:
+    deleted = book_copies_crud.delete_book_copy(book_copy_id=book_copy_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book copy not found",
+        )
+
+    book_copies_crud.db_session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
