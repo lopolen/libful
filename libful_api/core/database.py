@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 import os
 
-load_dotenv("config/database_url.env")
+load_dotenv("libful_api/config/database_url.env")
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL is None:
     raise ValueError("Invalid config - database_url doesn't exist")
