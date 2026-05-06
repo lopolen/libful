@@ -14,7 +14,7 @@ Table users {
 
   password_hash varchar(255)
 
-  created_at timestamp [not null]
+  created_at timestamp [not null, default: `now()`]
 }
 
 
@@ -32,4 +32,33 @@ Table check_in_history {
   id integer [primary key]
   user_id integer [not null, ref: > users.id]
   check_in_datetime datetime [not null, default: `now()`]
+}
+
+Table genres {
+  id integer [primary key]
+  name varchar(100) [not null]
+}
+
+Table books {
+  id integer [primary key]
+  title varchar(100) [not null]
+  author_id integer [not null, ref: > authors.id]
+  publish_year integer
+  genre_id integer [not null, ref: > genres.id]
+  isbn varchar(20) [unique]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table book_copies {
+  id integer [primary key]
+  book_id integer [not null, ref: > books.id]
+  inventory_number varchar(50) [not null, unique]
+  // See docs/libful-api/books/BookCopyStatuses.md
+  status varchar(30) [not null]
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table authors {
+  id integer [primary key]
+  full_name varchar(100) [not null]
 }
