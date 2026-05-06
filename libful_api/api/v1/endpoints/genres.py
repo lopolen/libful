@@ -12,10 +12,11 @@ from libful_api.schemas.genre import (
 )
 
 
-router = APIRouter(prefix="/genres", tags=["genres"])
+crud_router = APIRouter(prefix="/genres", tags=["Genres / CRUD"])
+router = APIRouter(prefix="/genres", tags=["Genres"])
 
 
-@router.post("", response_model=GenreRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post("/", response_model=GenreRead, status_code=status.HTTP_201_CREATED)
 def create_genre(
     payload: GenreCreate,
     genres_crud: GenresCrudDep,
@@ -26,7 +27,7 @@ def create_genre(
     return genre
 
 
-@router.get("", response_model=list[GenreRead])
+@crud_router.get("/", response_model=list[GenreRead])
 def list_genres(
     params: Annotated[GenreListParams, Depends()],
     genres_crud: GenresCrudDep,
@@ -34,7 +35,7 @@ def list_genres(
     return genres_crud.list_genres(limit=params.limit, offset=params.offset)
 
 
-@router.get("/{genre_id}", response_model=GenreRead)
+@crud_router.get("/{genre_id}", response_model=GenreRead)
 def read_genre(
     genre_id: int,
     genres_crud: GenresCrudDep,
@@ -48,7 +49,7 @@ def read_genre(
     return genre
 
 
-@router.patch("/{genre_id}", response_model=GenreRead)
+@crud_router.patch("/{genre_id}", response_model=GenreRead)
 def update_genre(
     genre_id: int,
     payload: GenreUpdate,
@@ -69,7 +70,7 @@ def update_genre(
     return genre
 
 
-@router.delete("/{genre_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete("/{genre_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_genre(
     genre_id: int,
     genres_crud: GenresCrudDep,

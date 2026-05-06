@@ -12,10 +12,11 @@ from libful_api.schemas.author import (
 )
 
 
-router = APIRouter(prefix="/authors", tags=["authors"])
+crud_router = APIRouter(prefix="/authors", tags=["Authors / CRUD"])
+router = APIRouter(prefix="/authors", tags=["Authors"])
 
 
-@router.post("", response_model=AuthorRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post("/", response_model=AuthorRead, status_code=status.HTTP_201_CREATED)
 def create_author(
     payload: AuthorCreate,
     authors_crud: AuthorsCrudDep,
@@ -26,7 +27,7 @@ def create_author(
     return author
 
 
-@router.get("", response_model=list[AuthorRead])
+@crud_router.get("/", response_model=list[AuthorRead])
 def list_authors(
     params: Annotated[AuthorListParams, Depends()],
     authors_crud: AuthorsCrudDep,
@@ -34,7 +35,7 @@ def list_authors(
     return authors_crud.list_authors(limit=params.limit, offset=params.offset)
 
 
-@router.get("/{author_id}", response_model=AuthorRead)
+@crud_router.get("/{author_id}", response_model=AuthorRead)
 def read_author(
     author_id: int,
     authors_crud: AuthorsCrudDep,
@@ -48,7 +49,7 @@ def read_author(
     return author
 
 
-@router.patch("/{author_id}", response_model=AuthorRead)
+@crud_router.patch("/{author_id}", response_model=AuthorRead)
 def update_author(
     author_id: int,
     payload: AuthorUpdate,
@@ -69,7 +70,7 @@ def update_author(
     return author
 
 
-@router.delete("/{author_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete("/{author_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_author(
     author_id: int,
     authors_crud: AuthorsCrudDep,

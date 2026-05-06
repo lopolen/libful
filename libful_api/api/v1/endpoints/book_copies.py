@@ -17,7 +17,8 @@ from libful_api.schemas.book_copy import (
 )
 
 
-router = APIRouter(prefix="/book-copies", tags=["book-copies"])
+crud_router = APIRouter(prefix="/book-copies", tags=["Book copies / CRUD"])
+router = APIRouter(prefix="/book-copies", tags=["Book copies"])
 
 
 def raise_book_copy_http_exception(
@@ -40,7 +41,7 @@ def raise_book_copy_http_exception(
     ) from exc
 
 
-@router.post("", response_model=BookCopyRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post("/", response_model=BookCopyRead, status_code=status.HTTP_201_CREATED)
 def create_book_copy(
     payload: BookCopyCreate,
     book_copies_crud: BookCopiesCrudDep,
@@ -55,7 +56,7 @@ def create_book_copy(
         raise_book_copy_http_exception(exc)
 
 
-@router.get("", response_model=list[BookCopyRead])
+@crud_router.get("/", response_model=list[BookCopyRead])
 def list_book_copies(
     params: Annotated[BookCopyListParams, Depends()],
     book_copies_crud: BookCopiesCrudDep,
@@ -71,7 +72,7 @@ def list_book_copies(
         raise_book_copy_http_exception(exc)
 
 
-@router.get("/{book_copy_id}", response_model=BookCopyRead)
+@crud_router.get("/{book_copy_id}", response_model=BookCopyRead)
 def read_book_copy(
     book_copy_id: int,
     book_copies_crud: BookCopiesCrudDep,
@@ -85,7 +86,7 @@ def read_book_copy(
     return book_copy
 
 
-@router.patch("/{book_copy_id}", response_model=BookCopyRead)
+@crud_router.patch("/{book_copy_id}", response_model=BookCopyRead)
 def update_book_copy(
     book_copy_id: int,
     payload: BookCopyUpdate,
@@ -113,7 +114,7 @@ def update_book_copy(
         raise_book_copy_http_exception(exc)
 
 
-@router.delete("/{book_copy_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete("/{book_copy_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_book_copy(
     book_copy_id: int,
     book_copies_crud: BookCopiesCrudDep,

@@ -15,7 +15,8 @@ from libful_api.schemas.user import (
 )
 
 
-router = APIRouter(prefix="/users", tags=["users"])
+crud_router = APIRouter(prefix="/users", tags=["Users / CRUD"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 def dump_payload(payload: BaseModel, *, exclude_unset: bool = False) -> dict[str, Any]:
@@ -37,7 +38,7 @@ def raise_user_http_exception(exc: UserAlreadyExists | InvalidEmail) -> NoReturn
     ) from exc
 
 
-@router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(
     payload: UserCreate,
     users_crud: UsersCrudDep,
@@ -52,7 +53,7 @@ def create_user(
         raise_user_http_exception(exc)
 
 
-@router.get("", response_model=list[UserRead])
+@crud_router.get("/", response_model=list[UserRead])
 def list_users(
     params: Annotated[UserListParams, Depends()],
     users_crud: UsersCrudDep,
@@ -76,7 +77,7 @@ def search_users(
     )
 
 
-@router.get("/{username}", response_model=UserRead)
+@crud_router.get("/{username}", response_model=UserRead)
 def read_user(
     username: str,
     users_crud: UsersCrudDep,
@@ -90,7 +91,7 @@ def read_user(
     return user
 
 
-@router.patch("/{username}", response_model=UserRead)
+@crud_router.patch("/{username}", response_model=UserRead)
 def update_user(
     username: str,
     payload: UserUpdate,
@@ -121,7 +122,7 @@ def update_user(
         raise_user_http_exception(exc)
 
 
-@router.delete("/{username}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete("/{username}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     username: str,
     users_crud: UsersCrudDep,

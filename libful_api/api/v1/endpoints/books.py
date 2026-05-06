@@ -8,7 +8,8 @@ from libful_api.models.book import Book
 from libful_api.schemas.book import BookCreate, BookListParams, BookRead, BookUpdate
 
 
-router = APIRouter(prefix="/books", tags=["books"])
+crud_router = APIRouter(prefix="/books", tags=["Books / CRUD"])
+router = APIRouter(prefix="/books", tags=["Books"])
 
 
 def raise_book_http_exception(
@@ -26,7 +27,7 @@ def raise_book_http_exception(
     ) from exc
 
 
-@router.post("", response_model=BookRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post("/", response_model=BookRead, status_code=status.HTTP_201_CREATED)
 def create_book(
     payload: BookCreate,
     books_crud: BooksCrudDep,
@@ -41,7 +42,7 @@ def create_book(
         raise_book_http_exception(exc)
 
 
-@router.get("", response_model=list[BookRead])
+@crud_router.get("/", response_model=list[BookRead])
 def list_books(
     params: Annotated[BookListParams, Depends()],
     books_crud: BooksCrudDep,
@@ -49,7 +50,7 @@ def list_books(
     return books_crud.list_books(limit=params.limit, offset=params.offset)
 
 
-@router.get("/{book_id}", response_model=BookRead)
+@crud_router.get("/{book_id}", response_model=BookRead)
 def read_book(
     book_id: int,
     books_crud: BooksCrudDep,
@@ -63,7 +64,7 @@ def read_book(
     return book
 
 
-@router.patch("/{book_id}", response_model=BookRead)
+@crud_router.patch("/{book_id}", response_model=BookRead)
 def update_book(
     book_id: int,
     payload: BookUpdate,
@@ -91,7 +92,7 @@ def update_book(
         raise_book_http_exception(exc)
 
 
-@router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_book(
     book_id: int,
     books_crud: BooksCrudDep,

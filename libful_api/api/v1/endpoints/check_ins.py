@@ -12,10 +12,11 @@ from libful_api.schemas.check_in import (
 )
 
 
-router = APIRouter(prefix="/check-ins", tags=["check-ins"])
+crud_router = APIRouter(prefix="/check-ins", tags=["Check-ins / CRUD"])
+router = APIRouter(prefix="/check-ins", tags=["Check-ins"])
 
 
-@router.post("", response_model=CheckInRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post("/", response_model=CheckInRead, status_code=status.HTTP_201_CREATED)
 def create_check_in(
     payload: CheckInCreate,
     check_ins_crud: CheckInsCrudDep,
@@ -35,7 +36,7 @@ def create_check_in(
     return check_in
 
 
-@router.get("", response_model=list[CheckInRead])
+@crud_router.get("/", response_model=list[CheckInRead])
 def list_check_ins(
     params: Annotated[CheckInListParams, Depends()],
     check_ins_crud: CheckInsCrudDep,
@@ -69,7 +70,7 @@ def count_user_check_ins(
     return UserAttendanceCount(user_id=user_id, attendance_count=attendance_count)
 
 
-@router.delete("/{check_in_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete("/{check_in_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_check_in(
     check_in_id: int,
     check_ins_crud: CheckInsCrudDep,
