@@ -6,7 +6,13 @@ from pydantic import BaseModel
 from libful_api.api.deps import UsersCrudDep
 from libful_api.core.exceptions import InvalidEmail, UserAlreadyExists
 from libful_api.models.user import User
-from libful_api.schemas.user import UserCreate, UserRead, UserSearchParams, UserUpdate
+from libful_api.schemas.user import (
+    UserCreate,
+    UserListParams,
+    UserRead,
+    UserSearchParams,
+    UserUpdate,
+)
 
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -44,6 +50,14 @@ def create_user(
     except (UserAlreadyExists, InvalidEmail) as exc:
         users_crud.db_session.rollback()
         raise_user_http_exception(exc)
+
+
+@router.get("", response_model=list[UserRead])
+def list_users(
+    params: Annotated[UserListParams, Depends()],
+    users_crud: UsersCrudDep,
+) -> list[User]:
+    return users_crud.list_users(limit=params.limit, offset=params.offset)
 
 
 @router.get("/search", response_model=list[UserRead])

@@ -46,6 +46,18 @@ class UsersCrud:
             select(User).where(User.username == username)
         )
 
+    def list_users(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> list[User]:
+        query = select(User).order_by(User.id).offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
+
+        return list(self.db_session.scalars(query).all())
+
     def search_users(
         self,
         *,

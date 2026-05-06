@@ -31,6 +31,11 @@ class UserSearchParams(BaseModel):
     offset: int = Field(default=0, ge=0)
 
 
+class UserListParams(BaseModel):
+    limit: int | None = Field(default=None, ge=1, le=100)
+    offset: int = Field(default=0, ge=0)
+
+
 class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
