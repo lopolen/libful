@@ -1,0 +1,22 @@
+from typing import TYPE_CHECKING
+
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from libful_api.core.database import Base
+from libful_api.models.users_roles import users_roles
+
+if TYPE_CHECKING:
+    from libful_api.models.user import User
+
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    users: Mapped[list["User"]] = relationship(
+        secondary=users_roles,
+        back_populates="roles",
+    )

@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from libful_api.core.database import Base, DATABASE_URL
-from libful_api.models import user  # noqa: F401
+from libful_api import models  # noqa: F401
 
 
 config = context.config

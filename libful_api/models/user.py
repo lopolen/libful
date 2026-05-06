@@ -1,9 +1,15 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from libful_api.core.database import Base
+from libful_api.models.users_roles import users_roles
+
+if TYPE_CHECKING:
+    from libful_api.models.check_in_history import CheckInHistory
+    from libful_api.models.role import Role
 
 
 class User(Base):
@@ -24,4 +30,13 @@ class User(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
+    )
+
+    roles: Mapped[list["Role"]] = relationship(
+        secondary=users_roles,
+        back_populates="users",
+    )
+    check_in_history: Mapped[list["CheckInHistory"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

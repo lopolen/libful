@@ -4,15 +4,15 @@
 
 Table users {
   id integer [primary key]
-  username varchar [not null, unique]
+  username varchar(100) [not null, unique]
   
-  firstname varchar [not null]
-  lastname varchar [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
 
-  email varchar [unique]
-  phone varchar [unique]
+  email varchar(255) [unique]
+  phone varchar(30) [unique]
 
-  password_hash varchar 
+  password_hash varchar(255)
 
   created_at timestamp [not null]
 }
@@ -20,12 +20,16 @@ Table users {
 
 Table roles {
   id integer [primary key]
-  name varchar [not null]
+  name varchar(100) [not null]
 }
 
 Table users_roles {
-  user_id integer [ref: > users.id]
-  role_id integer [ref: > roles.id]
+  user_id integer [primary key, ref: > users.id]
+  role_id integer [primary key, ref: > roles.id]
 }
 
-
+Table check_in_history {
+  id integer [primary key]
+  user_id integer [not null, ref: > users.id]
+  check_in_datetime datetime
+}
