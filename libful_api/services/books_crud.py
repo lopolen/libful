@@ -1,12 +1,13 @@
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from libful_api.core.exceptions import RelatedResourceNotFound, ResourceAlreadyExists
 from libful_api.models.author import Author
 from libful_api.models.book import Book
+from libful_api.models.book_copy import BookCopy
 from libful_api.models.genre import Genre
 
 
@@ -55,6 +56,38 @@ class BooksCrud:
             query = query.limit(limit)
 
         return list(self.db_session.scalars(query).all())
+
+    def search_books(
+        self,
+        *,
+        title: str | None = None,
+        author: str | None = None,
+        isbn: str | None = None,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> list[Book]:
+        query = select(Book).join(Book.author).order_by(Book.id).offset(offset)
+
+        if title is not None:
+            query = query.where(Book.title.ilike(f"%{title}%"))
+        if author is not None:
+            query = query.where(Author.full_name.ilike(f"%{author}%"))
+        if isbn is not None:
+            query = query.where(Book.isbn.ilike(f"%{isbn}%"))
+        if limit is not None:
+            query = query.limit(limit)
+
+        return list(self.db_session.scalars(query).all())
+
+    def count_book_copies(self, *, book_id: int) -> int | None:
+        if self.read_book(book_id=book_id) is None:
+            return None
+
+        return self.db_session.scalar(
+            select(func.count()).select_from(BookCopy).where(
+                BookCopy.book_id == book_id
+            )
+        ) or 0
 
     def update_book(
         self,

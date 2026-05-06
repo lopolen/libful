@@ -5,7 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from libful_api.api.deps import BooksCrudDep
 from libful_api.core.exceptions import RelatedResourceNotFound, ResourceAlreadyExists
 from libful_api.models.book import Book
-from libful_api.schemas.book import BookCreate, BookListParams, BookRead, BookUpdate
+from libful_api.schemas.book import (
+    BookCopiesCount,
+    BookCreate,
+    BookListParams,
+    BookRead,
+    BookSearchParams,
+    BookUpdate,
+)
 
 
 crud_router = APIRouter(prefix="/books", tags=["Books / CRUD"])
@@ -25,6 +32,35 @@ def raise_book_http_exception(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=str(exc),
     ) from exc
+
+
+@router.get("/search", response_model=list[BookRead])
+def search_books(
+    params: Annotated[BookSearchParams, Depends()],
+    books_crud: BooksCrudDep,
+) -> list[Book]:
+    return books_crud.search_books(
+        title=params.title,
+        author=params.author,
+        isbn=params.isbn,
+        limit=params.limit,
+        offset=params.offset,
+    )
+
+
+@router.get("/{book_id}/copies/count", response_model=BookCopiesCount)
+def count_book_copies(
+    book_id: int,
+    books_crud: BooksCrudDep,
+) -> BookCopiesCount:
+    copies_count = books_crud.count_book_copies(book_id=book_id)
+    if copies_count is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book not found",
+        )
+
+    return BookCopiesCount(book_id=book_id, copies_count=copies_count)
 
 
 @crud_router.post("/", response_model=BookRead, status_code=status.HTTP_201_CREATED)

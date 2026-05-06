@@ -24,6 +24,14 @@ class BookListParams(BaseModel):
     offset: int = Field(default=0, ge=0)
 
 
+class BookSearchParams(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=100)
+    author: str | None = Field(default=None, min_length=1, max_length=100)
+    isbn: str | None = Field(default=None, min_length=1, max_length=20)
+    limit: int | None = Field(default=None, ge=1, le=100)
+    offset: int = Field(default=0, ge=0)
+
+
 class BookRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -34,3 +42,8 @@ class BookRead(BaseModel):
     genre_id: int
     isbn: str | None
     created_at: datetime
+
+
+class BookCopiesCount(BaseModel):
+    book_id: int
+    copies_count: int
