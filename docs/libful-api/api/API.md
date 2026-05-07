@@ -30,6 +30,12 @@ GUI використовує ті самі endpoint-и, які описані в
 python3 libfull_gui/server.py
 ```
 
+Windows:
+
+```powershell
+python libfull_gui/server.py
+```
+
 Адреса сторінки:
 
 ```text
@@ -52,6 +58,12 @@ http://127.0.0.1:8000
 
 ```bash
 python3 libfull_gui/server.py --api http://127.0.0.1:8001
+```
+
+Windows:
+
+```powershell
+python libfull_gui/server.py --api http://127.0.0.1:8001
 ```
 
 Авторизація в GUI виконується через HTTP Basic Auth: введені логін і пароль додаються до кожного запиту як заголовок `Authorization`. Остаточну перевірку прав завжди виконує API.

@@ -11,17 +11,34 @@ GUI не потребує `npm`, `node_modules` або збірки. У дире
 
 ## Запуск
 
-Спочатку запусти бекенд API з кореня репозиторію:
+Спочатку запусти бекенд API з кореня репозиторію.
+
+Linux або macOS:
 
 ```bash
 source .venv/bin/activate
 uvicorn libful_api.main:app --reload
 ```
 
-Потім в окремому терміналі запусти GUI:
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+uvicorn libful_api.main:app --reload
+```
+
+Потім в окремому терміналі запусти GUI.
+
+Linux або macOS:
 
 ```bash
 python3 libfull_gui/server.py
+```
+
+Windows:
+
+```powershell
+python libfull_gui/server.py
 ```
 
 Відкрий:
@@ -42,13 +59,41 @@ http://127.0.0.1:8000
 python3 libfull_gui/server.py --port 8080 --api http://127.0.0.1:8001
 ```
 
+Windows:
+
+```powershell
+python libfull_gui/server.py --port 8080 --api http://127.0.0.1:8001
+```
+
 Якщо порт `8080` зайнятий:
 
 ```bash
 python3 libfull_gui/server.py --port 8081
 ```
 
+Windows:
+
+```powershell
+python libfull_gui/server.py --port 8081
+```
+
 Тоді відкрий `http://127.0.0.1:8081`.
+
+## Налаштування у Windows
+
+З кореня репозиторію можна підготувати бекенд і GUI однією командою:
+
+```powershell
+.\scripts\setup.ps1
+```
+
+Якщо PowerShell не дозволяє запуск локальних `.ps1` файлів:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+```
+
+Скрипт створює `.venv`, встановлює залежності, створює `libful_api/config/database_url.env`, запускає міграції, перевіряє `server.py` і створює `requirements.lock.txt`.
 
 ## Авторизація
 

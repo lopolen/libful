@@ -44,13 +44,27 @@ http://127.0.0.1:8000/docs
 
 ## Первинне налаштування
 
-Найпростіший спосіб підготувати середовище — запустити скрипт:
+Найпростіший спосіб підготувати середовище — запустити setup-скрипт для своєї операційної системи.
+
+Linux або macOS:
 
 ```bash
 bash scripts/setup.sh
 ```
 
-Скрипт виконує такі дії:
+Windows PowerShell:
+
+```powershell
+.\scripts\setup.ps1
+```
+
+Якщо PowerShell блокує запуск локального скрипта, запусти його з тимчасовим обходом policy тільки для цього процесу:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+```
+
+Setup-скрипт виконує такі дії:
 
 1. Створює віртуальне середовище `.venv`.
 2. Оновлює `pip`.
@@ -61,10 +75,25 @@ bash scripts/setup.sh
 7. Перевіряє синтаксис локального GUI-сервера.
 8. Створює `requirements.lock.txt` через `pip freeze` для локального знімка встановлених версій.
 
+У Windows-версії скрипта можна передати власну команду Python, директорію venv або URL бази:
+
+```powershell
+.\scripts\setup.ps1 -Python python -VenvDir .venv -DatabaseUrl "sqlite:///./dev.db"
+```
+
 Після цього API можна запустити так:
+
+Linux або macOS:
 
 ```bash
 source .venv/bin/activate
+uvicorn libful_api.main:app --reload
+```
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
 uvicorn libful_api.main:app --reload
 ```
 
@@ -84,10 +113,18 @@ http://127.0.0.1:8000/docs
 
 Окремий простий GUI для бібліотекаря й адміністратора знаходиться в директорії [`libfull_gui`](libfull_gui). Він працює без npm, node чи окремої frontend-збірки.
 
-Після запуску API відкрий GUI в окремому терміналі так:
+Після запуску API відкрий GUI в окремому терміналі так.
+
+Linux або macOS:
 
 ```bash
 python3 libfull_gui/server.py
+```
+
+Windows:
+
+```powershell
+python libfull_gui/server.py
 ```
 
 Адреса сторінки:
@@ -104,10 +141,22 @@ GUI за замовчуванням проксіює всі запити `/api/v
 python3 libfull_gui/server.py --api http://127.0.0.1:8001
 ```
 
+Windows:
+
+```powershell
+python libfull_gui/server.py --api http://127.0.0.1:8001
+```
+
 Якщо порт `8080` зайнятий:
 
 ```bash
 python3 libfull_gui/server.py --port 8081
+```
+
+Windows:
+
+```powershell
+python libfull_gui/server.py --port 8081
 ```
 
 Тоді відкрий:
@@ -130,11 +179,20 @@ http://127.0.0.1:8081
 
 Якщо потрібно налаштувати проєкт без скрипта, виконай команди нижче.
 
-Створи та активуй віртуальне середовище:
+Створи та активуй віртуальне середовище.
+
+Linux або macOS:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
+
+Windows PowerShell:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
 Онови `pip` і встанови залежності:
@@ -168,16 +226,24 @@ alembic upgrade head
 pip freeze > requirements.lock.txt
 ```
 
-Запусти сервер:
+Запусти API:
 
 ```bash
 uvicorn libful_api.main:app --reload
 ```
 
-Запусти GUI:
+Запусти GUI.
+
+Linux або macOS:
 
 ```bash
 python3 libfull_gui/server.py
+```
+
+Windows:
+
+```powershell
+python libfull_gui/server.py
 ```
 
 ## Робота з базою даних
@@ -245,10 +311,22 @@ uvicorn libful_api.main:app --reload
 python3 libfull_gui/server.py
 ```
 
+Windows:
+
+```powershell
+python libfull_gui/server.py
+```
+
 Запуск веб-інтерфейсу з іншим API:
 
 ```bash
 python3 libfull_gui/server.py --api http://127.0.0.1:8001
+```
+
+Windows:
+
+```powershell
+python libfull_gui/server.py --api http://127.0.0.1:8001
 ```
 
 Запуск міграцій:
