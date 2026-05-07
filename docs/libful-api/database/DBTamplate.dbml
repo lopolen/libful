@@ -62,3 +62,19 @@ Table authors {
   id integer [primary key]
   full_name varchar(100) [not null]
 }
+
+Table book_rents {
+  id integer [primary key]
+
+  book_copy_id integer [not null, ref: > book_copies.id]
+  user_id integer [not null, ref: > users.id]
+
+  rented_at timestamp [not null, default: `now()`]
+  due_at timestamp
+
+  returned_at timestamp
+
+  return_status varchar(30) // available, damaged, lost
+
+  notes text
+}
