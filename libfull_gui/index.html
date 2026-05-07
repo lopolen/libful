@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>libful GUI</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">L</span>
+        <div>
+          <strong>libful</strong>
+          <small>панель бібліотеки</small>
+        </div>
+      </div>
+
+      <nav class="tabs" aria-label="Розділи">
+        <button class="tab active" data-tab="overview" title="Огляд">Огляд</button>
+        <button class="tab" data-tab="readers" title="Читачі">Читачі</button>
+        <button class="tab" data-tab="catalog" title="Каталог">Каталог</button>
+        <button class="tab" data-tab="copies" title="Примірники">Примірники</button>
+        <button class="tab" data-tab="circulation" title="Видача">Видача</button>
+        <button class="tab" data-tab="fines" title="Штрафи">Штрафи</button>
+        <button class="tab" data-tab="admin" title="Адмін">Адмін</button>
+      </nav>
+    </aside>
+
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <h1>Робоче місце бібліотекаря</h1>
+          <p>Керування читачами, каталогом, видачами та штрафами через libful API.</p>
+        </div>
+        <form id="connection-form" class="connection">
+          <label>
+            API
+            <input id="api-base" name="apiBase" value="/api/v1" autocomplete="url">
+          </label>
+          <label>
+            Логін
+            <input id="auth-user" name="username" autocomplete="username">
+          </label>
+          <label>
+            Пароль
+            <input id="auth-pass" name="password" type="password" autocomplete="current-password">
+          </label>
+          <button type="submit">Зберегти</button>
+        </form>
+      </header>
+
+      <section id="notice" class="notice" hidden></section>
+
+      <section id="overview" class="view active">
+        <div class="toolbar">
+          <h2>Огляд</h2>
+          <button data-action="refresh-overview">Оновити</button>
+        </div>
+        <div class="stats">
+          <article>
+            <span id="stat-users">-</span>
+            <small>читачів і працівників</small>
+          </article>
+          <article>
+            <span id="stat-books">-</span>
+            <small>книг у каталозі</small>
+          </article>
+          <article>
+            <span id="stat-copies">-</span>
+            <small>примірників</small>
+          </article>
+          <article>
+            <span id="stat-overdue">-</span>
+            <small>прострочених видач</small>
+          </article>
+        </div>
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Останні видачі</h3>
+              <button data-action="load-history">Показати</button>
+            </div>
+            <div id="overview-history" class="table-wrap"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Неоплачені штрафи</h3>
+              <button data-action="load-unpaid-fines">Показати</button>
+            </div>
+            <div id="overview-fines" class="table-wrap"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="readers" class="view">
+        <div class="toolbar">
+          <h2>Читачі</h2>
+          <button data-action="load-users">Оновити список</button>
+        </div>
+        <div class="grid two">
+          <section class="panel">
+            <h3>Новий читач або працівник</h3>
+            <form id="user-form" class="form-grid">
+              <input name="username" placeholder="username" required>
+              <input name="first_name" placeholder="Ім'я" required>
+              <input name="last_name" placeholder="Прізвище" required>
+              <input name="email" type="email" placeholder="email">
+              <input name="phone" placeholder="телефон">
+              <input name="password" type="password" placeholder="пароль">
+              <select name="role">
+                <option value="">без ролі</option>
+                <option value="librarian">librarian</option>
+                <option value="admin">admin</option>
+              </select>
+              <button type="submit">Створити</button>
+            </form>
+          </section>
+          <section class="panel">
+            <h3>Пошук</h3>
+            <form id="user-search-form" class="form-grid">
+              <input name="id" type="number" min="1" placeholder="ID">
+              <input name="first_name" placeholder="Ім'я">
+              <input name="last_name" placeholder="Прізвище">
+              <input name="email" placeholder="email">
+              <input name="phone" placeholder="телефон">
+              <button type="submit">Знайти</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Список користувачів</h3>
+            <form id="check-in-form" class="inline-form">
+              <input name="user_id" type="number" min="1" placeholder="ID читача" required>
+              <button type="submit">Відмітити візит</button>
+            </form>
+          </div>
+          <div id="users-table" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="catalog" class="view">
+        <div class="toolbar">
+          <h2>Каталог</h2>
+          <button data-action="load-catalog">Оновити</button>
+        </div>
+        <div class="grid three">
+          <section class="panel">
+            <h3>Автор</h3>
+            <form id="author-form" class="stack-form">
+              <input name="full_name" placeholder="Повне ім'я" required>
+              <button type="submit">Додати</button>
+            </form>
+            <div id="authors-table" class="table-wrap compact"></div>
+          </section>
+          <section class="panel">
+            <h3>Жанр</h3>
+            <form id="genre-form" class="stack-form">
+              <input name="name" placeholder="Назва жанру" required>
+              <button type="submit">Додати</button>
+            </form>
+            <div id="genres-table" class="table-wrap compact"></div>
+          </section>
+          <section class="panel">
+            <h3>Книга</h3>
+            <form id="book-form" class="stack-form">
+              <input name="title" placeholder="Назва" required>
+              <input name="author_id" type="number" min="1" placeholder="ID автора" required>
+              <input name="genre_id" type="number" min="1" placeholder="ID жанру" required>
+              <input name="publish_year" type="number" min="0" placeholder="Рік">
+              <input name="isbn" placeholder="ISBN">
+              <button type="submit">Додати</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Книги</h3>
+            <form id="book-search-form" class="inline-form">
+              <input name="title" placeholder="назва">
+              <input name="author" placeholder="автор">
+              <input name="isbn" placeholder="isbn">
+              <button type="submit">Знайти</button>
+            </form>
+          </div>
+          <div id="books-table" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="copies" class="view">
+        <div class="toolbar">
+          <h2>Примірники</h2>
+          <button data-action="load-copies">Оновити</button>
+        </div>
+        <div class="grid two">
+          <section class="panel">
+            <h3>Новий примірник</h3>
+            <form id="copy-form" class="form-grid">
+              <input name="book_id" type="number" min="1" placeholder="ID книги" required>
+              <input name="inventory_number" placeholder="Інвентарний номер" required>
+              <select name="status" required>
+                <option value="available">available</option>
+                <option value="borrowed">borrowed</option>
+                <option value="lost">lost</option>
+                <option value="damaged">damaged</option>
+              </select>
+              <button type="submit">Додати</button>
+            </form>
+          </section>
+          <section class="panel">
+            <h3>Фільтр</h3>
+            <form id="copy-filter-form" class="form-grid">
+              <input name="book_id" type="number" min="1" placeholder="ID книги">
+              <select name="status">
+                <option value="">будь-який статус</option>
+                <option value="available">available</option>
+                <option value="borrowed">borrowed</option>
+                <option value="lost">lost</option>
+                <option value="damaged">damaged</option>
+              </select>
+              <button type="submit">Показати</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel">
+          <div id="copies-table" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="circulation" class="view">
+        <div class="toolbar">
+          <h2>Видача та повернення</h2>
+          <button data-action="load-history">Історія</button>
+        </div>
+        <div class="grid three">
+          <section class="panel">
+            <h3>Видати книгу</h3>
+            <form id="issue-form" class="stack-form">
+              <input name="book_copy_id" type="number" min="1" placeholder="ID примірника" required>
+              <input name="user_id" type="number" min="1" placeholder="ID читача" required>
+              <input name="due_at" type="datetime-local">
+              <textarea name="notes" placeholder="Нотатки"></textarea>
+              <button type="submit">Видати</button>
+            </form>
+          </section>
+          <section class="panel">
+            <h3>Повернути</h3>
+            <form id="return-form" class="stack-form">
+              <input name="book_rent_id" type="number" min="1" placeholder="ID видачі" required>
+              <select name="return_status" required>
+                <option value="available">available</option>
+                <option value="damaged">damaged</option>
+                <option value="lost">lost</option>
+              </select>
+              <input name="returned_at" type="datetime-local">
+              <textarea name="notes" placeholder="Нотатки"></textarea>
+              <button type="submit">Повернути</button>
+            </form>
+          </section>
+          <section class="panel">
+            <h3>Дедлайн</h3>
+            <form id="deadline-form" class="stack-form">
+              <input name="book_rent_id" type="number" min="1" placeholder="ID видачі" required>
+              <input name="due_at" type="datetime-local" required>
+              <button type="submit">Змінити</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel">
+          <div class="panel-head">
+            <h3>Історія / прострочення</h3>
+            <form id="history-filter-form" class="inline-form">
+              <input name="user_id" type="number" min="1" placeholder="ID читача">
+              <input name="book_copy_id" type="number" min="1" placeholder="ID примірника">
+              <button type="submit">Історія</button>
+              <button type="button" data-action="load-overdue">Прострочені</button>
+            </form>
+          </div>
+          <div id="rents-table" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="fines" class="view">
+        <div class="toolbar">
+          <h2>Штрафи</h2>
+          <button data-action="load-fines">Оновити</button>
+        </div>
+        <div class="grid two">
+          <section class="panel">
+            <h3>Фільтр штрафів</h3>
+            <form id="fine-filter-form" class="form-grid">
+              <input name="book_rent_id" type="number" min="1" placeholder="ID видачі">
+              <input name="user_id" type="number" min="1" placeholder="ID читача">
+              <select name="is_paid">
+                <option value="">всі</option>
+                <option value="false">неоплачені</option>
+                <option value="true">оплачені</option>
+              </select>
+              <button type="submit">Показати</button>
+            </form>
+          </section>
+          <section class="panel">
+            <h3>Попередній розрахунок</h3>
+            <form id="fine-preview-form" class="form-grid">
+              <input name="book_rent_id" type="number" min="1" placeholder="ID видачі" required>
+              <select name="return_status">
+                <option value="">без статусу</option>
+                <option value="available">available</option>
+                <option value="damaged">damaged</option>
+                <option value="lost">lost</option>
+              </select>
+              <button type="submit">Розрахувати</button>
+            </form>
+          </section>
+        </div>
+        <section class="panel">
+          <div id="fines-table" class="table-wrap"></div>
+        </section>
+      </section>
+
+      <section id="admin" class="view">
+        <div class="toolbar">
+          <h2>Адмін</h2>
+          <button data-action="load-roles">Ролі</button>
+        </div>
+        <div class="grid two">
+          <section class="panel">
+            <h3>Ролі користувача</h3>
+            <form id="role-form" class="form-grid">
+              <input name="username" placeholder="username" required>
+              <select name="role_name" required>
+                <option value="librarian">librarian</option>
+                <option value="admin">admin</option>
+              </select>
+              <button name="mode" value="add" type="submit">Додати роль</button>
+              <button name="mode" value="remove" type="submit">Прибрати роль</button>
+            </form>
+          </section>
+          <section class="panel">
+            <h3>Системні ролі</h3>
+            <div id="roles-table" class="table-wrap compact"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

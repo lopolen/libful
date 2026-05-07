@@ -31,6 +31,9 @@ fi
 echo "==> Applying database migrations"
 "$VENV_DIR/bin/alembic" upgrade head
 
+echo "==> Checking GUI server syntax"
+"$VENV_PYTHON" -m py_compile libfull_gui/server.py
+
 echo "==> Writing installed package snapshot to requirements.lock.txt"
 "$VENV_PIP" freeze > requirements.lock.txt
 
@@ -42,7 +45,13 @@ Run the API with:
   source .venv/bin/activate
   uvicorn libful_api.main:app --reload
 
-Open:
+Open API docs:
   http://127.0.0.1:8000/docs
+
+Run the librarian/admin GUI in another terminal:
+  python3 libfull_gui/server.py
+
+Open GUI:
+  http://127.0.0.1:8080
 
 MSG
