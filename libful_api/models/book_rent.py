@@ -8,6 +8,7 @@ from libful_api.core.database import Base
 
 if TYPE_CHECKING:
     from libful_api.models.book_copy import BookCopy
+    from libful_api.models.book_rent_fine import BookRentFine
     from libful_api.models.user import User
 
 
@@ -45,3 +46,7 @@ class BookRent(Base):
 
     book_copy: Mapped["BookCopy"] = relationship(back_populates="rents")
     user: Mapped["User"] = relationship(back_populates="book_rents")
+    fines: Mapped[list["BookRentFine"]] = relationship(
+        back_populates="book_rent",
+        cascade="all, delete-orphan",
+    )

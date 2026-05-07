@@ -33,3 +33,7 @@ class BookCopyUnavailable(Exception):
 class BookRentAlreadyReturned(Exception):
     """Book rent is already returned"""
     pass
+
+class FineAlreadyPaid(Exception):
+    """Fine is already paid"""
+    pass

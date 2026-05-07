@@ -9,6 +9,7 @@ from libful_api.models.users_roles import users_roles
 
 if TYPE_CHECKING:
     from libful_api.models.book_rent import BookRent
+    from libful_api.models.book_rent_fine import BookRentFine
     from libful_api.models.check_in_history import CheckInHistory
     from libful_api.models.role import Role
 
@@ -42,6 +43,10 @@ class User(Base):
         cascade="all, delete-orphan",
     )
     book_rents: Mapped[list["BookRent"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    book_rent_fines: Mapped[list["BookRentFine"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )

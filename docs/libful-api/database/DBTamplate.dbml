@@ -78,3 +78,22 @@ Table book_rents {
 
   notes text
 }
+
+Table book_rent_fines {
+  id integer [primary key]
+  book_rent_id integer [not null, ref: > book_rents.id]
+  user_id integer [not null, ref: > users.id]
+
+  // See docs/libful-api/books/BookRentFines.md
+  fine_type varchar(30) [not null]
+  amount_uah integer [not null]
+  days_overdue integer
+
+  notes text
+  created_at timestamp [not null, default: `now()`]
+  paid_at timestamp
+
+  indexes {
+    (book_rent_id, fine_type) [unique]
+  }
+}
