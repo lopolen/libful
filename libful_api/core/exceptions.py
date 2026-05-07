@@ -21,3 +21,15 @@ class RelatedResourceNotFound(Exception):
 class InvalidBookCopyStatus(Exception):
     """Book copy status is not allowed"""
     pass
+
+class InvalidBookRentReturnStatus(Exception):
+    """Book rent return status is not allowed"""
+    pass
+
+class BookCopyUnavailable(Exception):
+    """Book copy cannot be rented now"""
+    pass
+
+class BookRentAlreadyReturned(Exception):
+    """Book rent is already returned"""
+    pass
