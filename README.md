@@ -12,7 +12,8 @@
 - облік фізичних примірників книг;
 - видача та повернення книг;
 - контроль прострочених видач;
-- попередній розрахунок і оплата штрафів.
+- попередній розрахунок і оплата штрафів;
+- рольовий доступ через ролі `admin` і `librarian`.
 
 ## Технології
 
@@ -27,6 +28,7 @@
 
 - Повна API-документація проєкту: [`docs/libful-api/api/API.md`](docs/libful-api/api/API.md).
 - Правила структури роутерів: [`docs/libful-api/api/RouterStructure.md`](docs/libful-api/api/RouterStructure.md).
+- Ролі та права доступу: [`docs/libful-api/roles/RolesHandling.md`](docs/libful-api/roles/RolesHandling.md).
 - Статуси примірників книг: [`docs/libful-api/books/BookCopyStatuses.md`](docs/libful-api/books/BookCopyStatuses.md).
 - Дедлайни та штрафи: [`docs/libful-api/books/BookRentFines.md`](docs/libful-api/books/BookRentFines.md).
 
@@ -159,7 +161,10 @@ alembic revision --autogenerate -m "describe change"
 - `/genres` — жанри;
 - `/books` — книги;
 - `/book-copies` — фізичні примірники книг;
-- `/book-rents` — видача, повернення, прострочення та штрафи.
+- `/book-rents` — видача, повернення, прострочення та штрафи;
+- `/roles` — перегляд стандартних ролей.
+
+Доступ до захищених endpoint-ів виконується через HTTP Basic Auth. Якщо в системі ще немає `admin`, наступний створений користувач автоматично отримує цю роль; далі користувачів і ролі може створювати тільки адміністратор.
 
 Детальний опис запитів, відповідей, помилок і use cases є в [`docs/libful-api/api/API.md`](docs/libful-api/api/API.md).
 
@@ -181,6 +186,13 @@ alembic upgrade head
 
 ```bash
 alembic current
+```
+
+Призначення користувачу ролі `admin` або `librarian` за `id`:
+
+```bash
+.venv/bin/python scripts/set_user_role.py 1 admin
+.venv/bin/python scripts/set_user_role.py 2 librarian
 ```
 
 Створення знімка залежностей:

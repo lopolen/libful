@@ -37,3 +37,11 @@ class BookRentAlreadyReturned(Exception):
 class FineAlreadyPaid(Exception):
     """Fine is already paid"""
     pass
+
+class LastAdminRoleError(Exception):
+    """Operation would remove the last admin user"""
+    pass
+
+class PasswordRequiredForRole(Exception):
+    """User needs a password before receiving an API role"""
+    pass

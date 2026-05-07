@@ -20,7 +20,7 @@ Table users {
 
 Table roles {
   id integer [primary key]
-  name varchar(100) [not null]
+  name varchar(100) [not null, unique]
 }
 
 Table users_roles {

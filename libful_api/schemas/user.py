@@ -2,6 +2,9 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from libful_api.core.permissions import RoleName
+from libful_api.schemas.role import RoleRead
+
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=1, max_length=100)
@@ -9,7 +12,8 @@ class UserCreate(BaseModel):
     last_name: str = Field(min_length=1, max_length=100)
     email: str | None = Field(default=None, max_length=255)
     phone: str | None = Field(default=None, max_length=30)
-    password: str | None = None
+    password: str | None = Field(default=None, min_length=1)
+    roles: list[RoleName] = Field(default_factory=list)
 
 
 class UserUpdate(BaseModel):
@@ -18,7 +22,7 @@ class UserUpdate(BaseModel):
     last_name: str | None = Field(default=None, min_length=1, max_length=100)
     email: str | None = Field(default=None, max_length=255)
     phone: str | None = Field(default=None, max_length=30)
-    password: str | None = None
+    password: str | None = Field(default=None, min_length=1)
 
 
 class UserSearchParams(BaseModel):
@@ -46,3 +50,4 @@ class UserRead(BaseModel):
     email: str | None
     phone: str | None
     created_at: datetime
+    roles: list[RoleRead] = Field(default_factory=list)

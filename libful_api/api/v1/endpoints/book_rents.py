@@ -3,7 +3,7 @@ from typing import Annotated, NoReturn
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from libful_api.api.deps import BookRentsCrudDep
+from libful_api.api.deps import BookRentsCrudDep, require_permission
 from libful_api.core.book_copy_statuses import BookRentReturnStatus
 from libful_api.core.exceptions import (
     BookCopyUnavailable,
@@ -12,6 +12,7 @@ from libful_api.core.exceptions import (
     InvalidBookRentReturnStatus,
     RelatedResourceNotFound,
 )
+from libful_api.core.permissions import Permission
 from libful_api.models.book_rent_fine import BookRentFine
 from libful_api.models.book_rent import BookRent
 from libful_api.schemas.book_rent import (
@@ -56,7 +57,11 @@ def raise_book_rent_http_exception(
     ) from exc
 
 
-@router.get("/overdue", response_model=list[BookRentRead])
+@router.get(
+    "/overdue",
+    response_model=list[BookRentRead],
+    dependencies=[Depends(require_permission(Permission.MANAGE_BOOK_RENTS))],
+)
 def list_overdue_book_rents(
     params: Annotated[BookRentOverdueParams, Depends()],
     book_rents_crud: BookRentsCrudDep,
@@ -69,7 +74,11 @@ def list_overdue_book_rents(
     )
 
 
-@router.get("/history", response_model=list[BookRentRead])
+@router.get(
+    "/history",
+    response_model=list[BookRentRead],
+    dependencies=[Depends(require_permission(Permission.MANAGE_BOOK_RENTS))],
+)
 def list_book_rent_history(
     params: Annotated[BookRentHistoryParams, Depends()],
     book_rents_crud: BookRentsCrudDep,
@@ -85,7 +94,11 @@ def list_book_rent_history(
     )
 
 
-@router.get("/fines", response_model=list[BookRentFineRead])
+@router.get(
+    "/fines",
+    response_model=list[BookRentFineRead],
+    dependencies=[Depends(require_permission(Permission.MANAGE_FINES))],
+)
 def list_book_rent_fines(
     params: Annotated[BookRentFineListParams, Depends()],
     book_rents_crud: BookRentsCrudDep,
@@ -99,7 +112,11 @@ def list_book_rent_fines(
     )
 
 
-@router.post("/fines/{fine_id}/pay", response_model=BookRentFineRead)
+@router.post(
+    "/fines/{fine_id}/pay",
+    response_model=BookRentFineRead,
+    dependencies=[Depends(require_permission(Permission.MANAGE_FINES))],
+)
 def pay_book_rent_fine(
     fine_id: int,
     book_rents_crud: BookRentsCrudDep,
@@ -123,7 +140,12 @@ def pay_book_rent_fine(
         raise_book_rent_http_exception(exc)
 
 
-@router.post("/issue", response_model=BookRentRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/issue",
+    response_model=BookRentRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_permission(Permission.MANAGE_BOOK_RENTS))],
+)
 def issue_book(
     payload: BookRentIssue,
     book_rents_crud: BookRentsCrudDep,
@@ -138,7 +160,11 @@ def issue_book(
         raise_book_rent_http_exception(exc)
 
 
-@router.get("/{book_rent_id}/fines/preview", response_model=list[BookRentFinePreview])
+@router.get(
+    "/{book_rent_id}/fines/preview",
+    response_model=list[BookRentFinePreview],
+    dependencies=[Depends(require_permission(Permission.MANAGE_FINES))],
+)
 def preview_book_rent_fines(
     book_rent_id: int,
     book_rents_crud: BookRentsCrudDep,
@@ -155,7 +181,11 @@ def preview_book_rent_fines(
         raise_book_rent_http_exception(exc)
 
 
-@router.patch("/{book_rent_id}/deadline", response_model=BookRentRead)
+@router.patch(
+    "/{book_rent_id}/deadline",
+    response_model=BookRentRead,
+    dependencies=[Depends(require_permission(Permission.MANAGE_BOOK_RENTS))],
+)
 def update_book_rent_deadline(
     book_rent_id: int,
     payload: BookRentDeadlineUpdate,
@@ -183,7 +213,11 @@ def update_book_rent_deadline(
         raise_book_rent_http_exception(exc)
 
 
-@router.post("/{book_rent_id}/return", response_model=BookRentRead)
+@router.post(
+    "/{book_rent_id}/return",
+    response_model=BookRentRead,
+    dependencies=[Depends(require_permission(Permission.MANAGE_BOOK_RENTS))],
+)
 def return_book(
     book_rent_id: int,
     payload: BookRentReturn,

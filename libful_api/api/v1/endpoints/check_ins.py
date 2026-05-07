@@ -2,7 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from libful_api.api.deps import CheckInsCrudDep
+from libful_api.api.deps import CheckInsCrudDep, require_permission
+from libful_api.core.permissions import Permission
 from libful_api.models.check_in_history import CheckInHistory
 from libful_api.schemas.check_in import (
     CheckInCreate,
@@ -16,7 +17,12 @@ crud_router = APIRouter(prefix="/check-ins", tags=["Check-ins / CRUD"])
 router = APIRouter(prefix="/check-ins", tags=["Check-ins"])
 
 
-@crud_router.post("/", response_model=CheckInRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post(
+    "/",
+    response_model=CheckInRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CHECK_INS))],
+)
 def create_check_in(
     payload: CheckInCreate,
     check_ins_crud: CheckInsCrudDep,
@@ -36,7 +42,11 @@ def create_check_in(
     return check_in
 
 
-@crud_router.get("/", response_model=list[CheckInRead])
+@crud_router.get(
+    "/",
+    response_model=list[CheckInRead],
+    dependencies=[Depends(require_permission(Permission.MANAGE_CHECK_INS))],
+)
 def list_check_ins(
     params: Annotated[CheckInListParams, Depends()],
     check_ins_crud: CheckInsCrudDep,
@@ -55,7 +65,11 @@ def list_check_ins(
     return check_ins
 
 
-@router.get("/users/{user_id}/count", response_model=UserAttendanceCount)
+@router.get(
+    "/users/{user_id}/count",
+    response_model=UserAttendanceCount,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CHECK_INS))],
+)
 def count_user_check_ins(
     user_id: int,
     check_ins_crud: CheckInsCrudDep,
@@ -70,7 +84,11 @@ def count_user_check_ins(
     return UserAttendanceCount(user_id=user_id, attendance_count=attendance_count)
 
 
-@crud_router.delete("/{check_in_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete(
+    "/{check_in_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CHECK_INS))],
+)
 def delete_check_in(
     check_in_id: int,
     check_ins_crud: CheckInsCrudDep,

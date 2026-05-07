@@ -2,12 +2,13 @@ from typing import Annotated, NoReturn
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from libful_api.api.deps import BookCopiesCrudDep
+from libful_api.api.deps import BookCopiesCrudDep, require_permission
 from libful_api.core.exceptions import (
     InvalidBookCopyStatus,
     RelatedResourceNotFound,
     ResourceAlreadyExists,
 )
+from libful_api.core.permissions import Permission
 from libful_api.models.book_copy import BookCopy
 from libful_api.schemas.book_copy import (
     BookCopyCreate,
@@ -41,7 +42,12 @@ def raise_book_copy_http_exception(
     ) from exc
 
 
-@crud_router.post("/", response_model=BookCopyRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post(
+    "/",
+    response_model=BookCopyRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def create_book_copy(
     payload: BookCopyCreate,
     book_copies_crud: BookCopiesCrudDep,
@@ -56,7 +62,11 @@ def create_book_copy(
         raise_book_copy_http_exception(exc)
 
 
-@crud_router.get("/", response_model=list[BookCopyRead])
+@crud_router.get(
+    "/",
+    response_model=list[BookCopyRead],
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def list_book_copies(
     params: Annotated[BookCopyListParams, Depends()],
     book_copies_crud: BookCopiesCrudDep,
@@ -72,7 +82,11 @@ def list_book_copies(
         raise_book_copy_http_exception(exc)
 
 
-@crud_router.get("/{book_copy_id}", response_model=BookCopyRead)
+@crud_router.get(
+    "/{book_copy_id}",
+    response_model=BookCopyRead,
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def read_book_copy(
     book_copy_id: int,
     book_copies_crud: BookCopiesCrudDep,
@@ -86,7 +100,11 @@ def read_book_copy(
     return book_copy
 
 
-@crud_router.patch("/{book_copy_id}", response_model=BookCopyRead)
+@crud_router.patch(
+    "/{book_copy_id}",
+    response_model=BookCopyRead,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def update_book_copy(
     book_copy_id: int,
     payload: BookCopyUpdate,
@@ -114,7 +132,11 @@ def update_book_copy(
         raise_book_copy_http_exception(exc)
 
 
-@crud_router.delete("/{book_copy_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete(
+    "/{book_copy_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def delete_book_copy(
     book_copy_id: int,
     book_copies_crud: BookCopiesCrudDep,

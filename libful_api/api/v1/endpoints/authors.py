@@ -2,7 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from libful_api.api.deps import AuthorsCrudDep
+from libful_api.api.deps import AuthorsCrudDep, require_permission
+from libful_api.core.permissions import Permission
 from libful_api.models.author import Author
 from libful_api.schemas.author import (
     AuthorCreate,
@@ -16,7 +17,12 @@ crud_router = APIRouter(prefix="/authors", tags=["Authors / CRUD"])
 router = APIRouter(prefix="/authors", tags=["Authors"])
 
 
-@crud_router.post("/", response_model=AuthorRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post(
+    "/",
+    response_model=AuthorRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def create_author(
     payload: AuthorCreate,
     authors_crud: AuthorsCrudDep,
@@ -27,7 +33,11 @@ def create_author(
     return author
 
 
-@crud_router.get("/", response_model=list[AuthorRead])
+@crud_router.get(
+    "/",
+    response_model=list[AuthorRead],
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def list_authors(
     params: Annotated[AuthorListParams, Depends()],
     authors_crud: AuthorsCrudDep,
@@ -35,7 +45,11 @@ def list_authors(
     return authors_crud.list_authors(limit=params.limit, offset=params.offset)
 
 
-@crud_router.get("/{author_id}", response_model=AuthorRead)
+@crud_router.get(
+    "/{author_id}",
+    response_model=AuthorRead,
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def read_author(
     author_id: int,
     authors_crud: AuthorsCrudDep,
@@ -49,7 +63,11 @@ def read_author(
     return author
 
 
-@crud_router.patch("/{author_id}", response_model=AuthorRead)
+@crud_router.patch(
+    "/{author_id}",
+    response_model=AuthorRead,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def update_author(
     author_id: int,
     payload: AuthorUpdate,
@@ -70,7 +88,11 @@ def update_author(
     return author
 
 
-@crud_router.delete("/{author_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete(
+    "/{author_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def delete_author(
     author_id: int,
     authors_crud: AuthorsCrudDep,

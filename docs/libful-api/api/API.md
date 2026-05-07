@@ -35,11 +35,43 @@ Content-Type: application/json
 
 Для частини endpoint-ів `limit` є необов'язковим. Якщо його не передати, API повертає всі записи після `offset`. Для `GET /users/search` значення `limit` за замовчуванням дорівнює `20`.
 
+## Авторизація та права доступу
+
+API використовує HTTP Basic Auth. У запиті треба передавати `username` і пароль користувача:
+
+```bash
+curl -u admin:secret http://localhost:8000/api/v1/users/
+```
+
+Якщо в системі ще немає жодного користувача з роллю `admin`, наступний створений користувач може бути створений без авторизації через `POST /api/v1/users/`; він автоматично отримує роль `admin`. Після появи першого адміністратора створення користувачів вимагає право `manage_users`.
+
+Стандартні ролі:
+
+- `admin` — має всі права.
+- `librarian` — може читати користувачів, працювати з каталогом, відвідуваннями, видачами й штрафами, але не може керувати користувачами та ролями.
+
+Користувач без ролей не має доступу до захищених операцій.
+
+Основні права:
+
+| Право | Що дозволяє |
+| --- | --- |
+| `read_users` | Читати та шукати користувачів, переглядати ролі |
+| `manage_users` | Створювати, оновлювати й видаляти користувачів |
+| `manage_roles` | Додавати й прибирати ролі користувачів |
+| `read_catalog` | Читати авторів, жанри, книги й примірники |
+| `manage_catalog` | Створювати, оновлювати й видаляти об'єкти каталогу |
+| `manage_check_ins` | Працювати з відвідуваннями |
+| `manage_book_rents` | Видавати, повертати книги, змінювати дедлайни й дивитися історію |
+| `manage_fines` | Переглядати, попередньо рахувати й оплачувати штрафи |
+
 ## Типові HTTP-статуси
 
 - `200 OK` — запит успішно виконано.
 - `201 Created` — ресурс створено.
 - `204 No Content` — ресурс видалено, тіло відповіді відсутнє.
+- `401 Unauthorized` — відсутні або неправильні Basic Auth credentials.
+- `403 Forbidden` — користувач автентифікований, але не має потрібного права.
 - `404 Not Found` — ресурс або пов'язаний ресурс не знайдено.
 - `409 Conflict` — конфлікт бізнес-правил або унікальності.
 - `422 Unprocessable Entity` — помилка валідації payload, query-параметрів або доменного статусу.
@@ -68,11 +100,18 @@ Content-Type: application/json
   "last_name": "Коваль",
   "email": "olena@example.com",
   "phone": "+380501112233",
-  "created_at": "2026-05-07T12:30:00"
+  "created_at": "2026-05-07T12:30:00",
+  "roles": [
+    {
+      "id": 1,
+      "name": "admin"
+    }
+  ]
 }
 ```
 
 Поле `password` можна передавати під час створення або оновлення, але API не повертає пароль чи `password_hash`.
+Поле `roles` у відповіді показує поточні ролі користувача.
 
 ### Endpoint-и
 
@@ -84,6 +123,9 @@ Content-Type: application/json
 | `GET` | `/api/v1/users/{username}` | Отримати користувача за username |
 | `PATCH` | `/api/v1/users/{username}` | Частково оновити користувача |
 | `DELETE` | `/api/v1/users/{username}` | Видалити користувача |
+| `GET` | `/api/v1/users/{username}/roles` | Отримати ролі користувача |
+| `PUT` | `/api/v1/users/{username}/roles/{role_name}` | Додати роль користувачу |
+| `DELETE` | `/api/v1/users/{username}/roles/{role_name}` | Прибрати роль користувача |
 
 ### Створення користувача
 
@@ -98,7 +140,8 @@ Content-Type: application/json
   "last_name": "Коваль",
   "email": "olena@example.com",
   "phone": "+380501112233",
-  "password": "secret"
+  "password": "secret",
+  "roles": ["librarian"]
 }
 ```
 
@@ -113,10 +156,17 @@ Content-Type: application/json
 - `username`, `first_name`, `last_name`: 1-100 символів.
 - `email`: до 255 символів, якщо передано.
 - `phone`: до 30 символів, якщо передано.
+- `password`: необов'язковий, але якщо передано, має містити хоча б 1 символ.
+- `roles`: необов'язковий список значень `admin` або `librarian`.
 - `username`, `email` і `phone` мають бути унікальними серед користувачів, якщо передані.
+
+Якщо в системі немає адміністратора, створений користувач автоматично отримує `admin`. Після цього створення користувачів потребує права `manage_users`.
+Користувачі з ролями повинні мати пароль; інакше вони не зможуть пройти Basic Auth, тому API повертає `422 Unprocessable Entity`.
 
 Можливі помилки:
 
+- `401 Unauthorized` — credentials не передані або неправильні.
+- `403 Forbidden` — користувач не має права `manage_users`.
 - `409 Conflict` — користувач із таким `username`, `email` або `phone` уже існує.
 - `422 Unprocessable Entity` — некоректний email або payload.
 
@@ -166,6 +216,50 @@ GET /api/v1/users/search?last_name=Коваль&limit=10
 ```
 
 Якщо передати новий `username`, наступні CRUD-запити до цього користувача мають використовувати вже нове значення.
+
+### Ролі користувача
+
+`GET /api/v1/users/{username}/roles`
+
+Відповідь:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "admin"
+  }
+]
+```
+
+`PUT /api/v1/users/{username}/roles/librarian` додає роль користувачу.
+
+`DELETE /api/v1/users/{username}/roles/librarian` прибирає роль користувача.
+
+Дозволені `role_name`:
+
+- `admin`
+- `librarian`
+
+Додавати й прибирати ролі може тільки `admin`. API повертає `409 Conflict`, якщо операція видалила б останнього адміністратора.
+Якщо користувач не має пароля, додавання ролі повертає `422 Unprocessable Entity`.
+
+## Ролі
+
+### Модель ролі
+
+```json
+{
+  "id": 1,
+  "name": "admin"
+}
+```
+
+### Endpoint-и
+
+| Метод | Шлях | Опис |
+| --- | --- | --- |
+| `GET` | `/api/v1/roles/` | Отримати список стандартних ролей |
 
 ## Відвідування
 
@@ -762,7 +856,9 @@ GET /api/v1/book-rents/fines?user_id=1&is_paid=false
 
 ## Важливі доменні обмеження
 
-- API наразі не має endpoint-ів авторизації; доступ до всіх описаних endpoint-ів не обмежений на рівні FastAPI-залежностей.
+- Захищені endpoint-и вимагають HTTP Basic Auth.
+- Якщо в системі немає користувача з роллю `admin`, наступний створений користувач створюється без авторизації та автоматично отримує роль `admin`.
+- API не дозволяє видалити останнього адміністратора або прибрати в останнього адміністратора роль `admin`.
 - CRUD користувачів використовує `username` як path-параметр, а не `id`.
 - Видати можна тільки примірник зі статусом `available`.
 - Активна видача — це запис `book_rents`, у якого `returned_at = null`.
@@ -775,6 +871,7 @@ GET /api/v1/book-rents/fines?user_id=1&is_paid=false
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/users/ \
+  -u admin:secret \
   -H "Content-Type: application/json" \
   -d '{
     "username": "reader01",
@@ -788,6 +885,7 @@ curl -X POST http://localhost:8000/api/v1/users/ \
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/book-rents/issue \
+  -u librarian:secret \
   -H "Content-Type: application/json" \
   -d '{
     "book_copy_id": 1,

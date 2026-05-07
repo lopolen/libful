@@ -2,7 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from libful_api.api.deps import GenresCrudDep
+from libful_api.api.deps import GenresCrudDep, require_permission
+from libful_api.core.permissions import Permission
 from libful_api.models.genre import Genre
 from libful_api.schemas.genre import (
     GenreCreate,
@@ -16,7 +17,12 @@ crud_router = APIRouter(prefix="/genres", tags=["Genres / CRUD"])
 router = APIRouter(prefix="/genres", tags=["Genres"])
 
 
-@crud_router.post("/", response_model=GenreRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post(
+    "/",
+    response_model=GenreRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def create_genre(
     payload: GenreCreate,
     genres_crud: GenresCrudDep,
@@ -27,7 +33,11 @@ def create_genre(
     return genre
 
 
-@crud_router.get("/", response_model=list[GenreRead])
+@crud_router.get(
+    "/",
+    response_model=list[GenreRead],
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def list_genres(
     params: Annotated[GenreListParams, Depends()],
     genres_crud: GenresCrudDep,
@@ -35,7 +45,11 @@ def list_genres(
     return genres_crud.list_genres(limit=params.limit, offset=params.offset)
 
 
-@crud_router.get("/{genre_id}", response_model=GenreRead)
+@crud_router.get(
+    "/{genre_id}",
+    response_model=GenreRead,
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def read_genre(
     genre_id: int,
     genres_crud: GenresCrudDep,
@@ -49,7 +63,11 @@ def read_genre(
     return genre
 
 
-@crud_router.patch("/{genre_id}", response_model=GenreRead)
+@crud_router.patch(
+    "/{genre_id}",
+    response_model=GenreRead,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def update_genre(
     genre_id: int,
     payload: GenreUpdate,
@@ -70,7 +88,11 @@ def update_genre(
     return genre
 
 
-@crud_router.delete("/{genre_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete(
+    "/{genre_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def delete_genre(
     genre_id: int,
     genres_crud: GenresCrudDep,

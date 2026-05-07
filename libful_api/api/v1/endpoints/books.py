@@ -2,8 +2,9 @@ from typing import Annotated, NoReturn
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
-from libful_api.api.deps import BooksCrudDep
+from libful_api.api.deps import BooksCrudDep, require_permission
 from libful_api.core.exceptions import RelatedResourceNotFound, ResourceAlreadyExists
+from libful_api.core.permissions import Permission
 from libful_api.models.book import Book
 from libful_api.schemas.book import (
     BookCopiesCount,
@@ -34,7 +35,11 @@ def raise_book_http_exception(
     ) from exc
 
 
-@router.get("/search", response_model=list[BookRead])
+@router.get(
+    "/search",
+    response_model=list[BookRead],
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def search_books(
     params: Annotated[BookSearchParams, Depends()],
     books_crud: BooksCrudDep,
@@ -48,7 +53,11 @@ def search_books(
     )
 
 
-@router.get("/{book_id}/copies/count", response_model=BookCopiesCount)
+@router.get(
+    "/{book_id}/copies/count",
+    response_model=BookCopiesCount,
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def count_book_copies(
     book_id: int,
     books_crud: BooksCrudDep,
@@ -63,7 +72,12 @@ def count_book_copies(
     return BookCopiesCount(book_id=book_id, copies_count=copies_count)
 
 
-@crud_router.post("/", response_model=BookRead, status_code=status.HTTP_201_CREATED)
+@crud_router.post(
+    "/",
+    response_model=BookRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def create_book(
     payload: BookCreate,
     books_crud: BooksCrudDep,
@@ -78,7 +92,11 @@ def create_book(
         raise_book_http_exception(exc)
 
 
-@crud_router.get("/", response_model=list[BookRead])
+@crud_router.get(
+    "/",
+    response_model=list[BookRead],
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def list_books(
     params: Annotated[BookListParams, Depends()],
     books_crud: BooksCrudDep,
@@ -86,7 +104,11 @@ def list_books(
     return books_crud.list_books(limit=params.limit, offset=params.offset)
 
 
-@crud_router.get("/{book_id}", response_model=BookRead)
+@crud_router.get(
+    "/{book_id}",
+    response_model=BookRead,
+    dependencies=[Depends(require_permission(Permission.READ_CATALOG))],
+)
 def read_book(
     book_id: int,
     books_crud: BooksCrudDep,
@@ -100,7 +122,11 @@ def read_book(
     return book
 
 
-@crud_router.patch("/{book_id}", response_model=BookRead)
+@crud_router.patch(
+    "/{book_id}",
+    response_model=BookRead,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def update_book(
     book_id: int,
     payload: BookUpdate,
@@ -128,7 +154,11 @@ def update_book(
         raise_book_http_exception(exc)
 
 
-@crud_router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+@crud_router.delete(
+    "/{book_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_permission(Permission.MANAGE_CATALOG))],
+)
 def delete_book(
     book_id: int,
     books_crud: BooksCrudDep,
